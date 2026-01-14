@@ -871,10 +871,12 @@ export default class StreetView extends Control {
 
     private _updateStreetViewPosition(coords: Coordinate): void {
         const projection = this._view.getProjection();
-        let latLonGoogle: { lat: number; lng: number };
+        let latLonGoogle;
 
-        // If already using geographic projection (EPSG:4326), no transform needed
-        if (projection.getCode() === 'EPSG:4326') {
+        const isGeographic =
+            Math.abs(coords[0]) <= 180 && Math.abs(coords[1]) <= 90;
+
+        if (projection.getCode() === 'EPSG:4326' || isGeographic) {
             latLonGoogle = { lat: coords[1], lng: coords[0] };
         } else {
             const latLon = transform(coords, projection, 'EPSG:4326').reverse();
