@@ -2,7 +2,7 @@
 /*!
  * ol-street-view - v3.0.4
  * https://github.com/GastonZalba/ol-street-view#readme
- * Built: Wed Jan 14 2026 14:26:03 GMT+0100 (Central European Standard Time)
+ * Built: Wed Jan 14 2026 15:57:20 GMT+0100 (Central European Standard Time)
 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/Feature.js'), require('ol/Collection.js'), require('ol/style/Icon.js'), require('ol/style/Style.js'), require('ol/source/Vector.js'), require('ol/source/XYZ.js'), require('ol/geom/Point.js'), require('ol/control/Control.js'), require('ol/proj.js'), require('ol/layer/Vector.js'), require('ol/layer/Tile.js'), require('ol/interaction/Translate.js'), require('ol/Observable.js'), require('interactjs')) :
@@ -1050,8 +1050,16 @@
             });
         }
         _updateStreetViewPosition(coords) {
-            const latLon = proj_js.transform(coords, this._view.getProjection(), 'EPSG:4326').reverse();
-            const latLonGoogle = { lat: latLon[0], lng: latLon[1] };
+            const projection = this._view.getProjection();
+            let latLonGoogle;
+            // If already using geographic projection (EPSG:4326), no transform needed
+            if (projection.getCode() === 'EPSG:4326') {
+                latLonGoogle = { lat: coords[1], lng: coords[0] };
+            }
+            else {
+                const latLon = proj_js.transform(coords, projection, 'EPSG:4326').reverse();
+                latLonGoogle = { lat: latLon[0], lng: latLon[1] };
+            }
             //@ts-ignore-error this method is missing in the @types
             this._streetViewService
                 .getPanorama({

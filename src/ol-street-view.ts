@@ -870,13 +870,16 @@ export default class StreetView extends Control {
     }
 
     private _updateStreetViewPosition(coords: Coordinate): void {
-        const latLon = transform(
-            coords,
-            this._view.getProjection(),
-            'EPSG:4326'
-        ).reverse();
+        const projection = this._view.getProjection();
+        let latLonGoogle: { lat: number; lng: number };
 
-        const latLonGoogle = { lat: latLon[0], lng: latLon[1] };
+        // If already using geographic projection (EPSG:4326), no transform needed
+        if (projection.getCode() === 'EPSG:4326') {
+            latLonGoogle = { lat: coords[1], lng: coords[0] };
+        } else {
+            const latLon = transform(coords, projection, 'EPSG:4326').reverse();
+            latLonGoogle = { lat: latLon[0], lng: latLon[1] };
+        }
 
         //@ts-ignore-error this method is missing in the @types
         this._streetViewService
