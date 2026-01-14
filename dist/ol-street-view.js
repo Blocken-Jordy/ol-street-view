@@ -2,7 +2,7 @@
 /*!
  * ol-street-view - v3.0.4
  * https://github.com/GastonZalba/ol-street-view#readme
- * Built: Wed Jan 14 2026 16:09:19 GMT+0100 (Central European Standard Time)
+ * Built: Wed Jan 14 2026 16:24:40 GMT+0100 (Central European Standard Time)
 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ol/Feature.js'), require('ol/Collection.js'), require('ol/style/Icon.js'), require('ol/style/Style.js'), require('ol/source/Vector.js'), require('ol/source/XYZ.js'), require('ol/geom/Point.js'), require('ol/control/Control.js'), require('ol/proj.js'), require('ol/layer/Vector.js'), require('ol/layer/Tile.js'), require('ol/interaction/Translate.js'), require('ol/Observable.js'), require('interactjs')) :
@@ -1087,10 +1087,20 @@
             // If the coordinates are in Google format, extract the values,
             // and convert the projection
             if (isGoogleFormat) {
-                coords = proj_js.transform([
+                const projection = this._view.getProjection();
+                const googleCoords = [
                     coords.lng(),
                     coords.lat()
-                ], 'EPSG:4326', this._view.getProjection());
+                ];
+                // Check if coordinates are already in geographic range (useGeographic was called)
+                const isGeographic = Math.abs(googleCoords[0]) <= 180 &&
+                    Math.abs(googleCoords[1]) <= 90;
+                if (projection.getCode() === 'EPSG:4326' || isGeographic) {
+                    coords = googleCoords;
+                }
+                else {
+                    coords = proj_js.transform(googleCoords, 'EPSG:4326', projection);
+                }
             }
             this._pegmanSelectedCoords = coords;
             this._pegmanFeature

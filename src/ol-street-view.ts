@@ -917,14 +917,22 @@ export default class StreetView extends Control {
         // If the coordinates are in Google format, extract the values,
         // and convert the projection
         if (isGoogleFormat) {
-            coords = transform(
-                [
-                    (coords as google.maps.LatLng).lng(),
-                    (coords as google.maps.LatLng).lat()
-                ],
-                'EPSG:4326',
-                this._view.getProjection()
-            );
+            const projection = this._view.getProjection();
+            const googleCoords: Coordinate = [
+                (coords as google.maps.LatLng).lng(),
+                (coords as google.maps.LatLng).lat()
+            ];
+
+            // Check if coordinates are already in geographic range (useGeographic was called)
+            const isGeographic =
+                Math.abs(googleCoords[0]) <= 180 &&
+                Math.abs(googleCoords[1]) <= 90;
+
+            if (projection.getCode() === 'EPSG:4326' || isGeographic) {
+                coords = googleCoords;
+            } else {
+                coords = transform(googleCoords, 'EPSG:4326', projection);
+            }
         }
 
         this._pegmanSelectedCoords = coords as Coordinate;
