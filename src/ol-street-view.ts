@@ -879,28 +879,30 @@ export default class StreetView extends Control {
         const latLonGoogle = { lat: latLon[0], lng: latLon[1] };
 
         //@ts-ignore-error this method is missing in the @types
-        this._streetViewService.getPanoramaByLocation(
-            latLonGoogle,
-            this._options.radius,
-            (streetViewPanoramaData, status) => {
-                if (status === google.maps.StreetViewStatus.OK) {
-                    this._panorama.setPosition(latLonGoogle);
-                    this._panorama.setVisible(true);
-                    this._panorama.setZoom(1);
-                    if (this._options.updatePegmanToClosestPanorama) {
-                        this._remvoveTranslateInteractionEvent();
-                        this._updatePegmanPosition(
-                            streetViewPanoramaData.location.latLng,
-                            true
-                        );
-                        this._addTranslateInteractionEvent();
-                    }
-                } else {
-                    this._showNoDataMode();
-                    this._updatePegmanPosition(coords, false);
+        this._streetViewService
+            .getPanorama({
+                location: latLonGoogle,
+                radius: this._options.radius,
+                source: google.maps.StreetViewSource.OUTDOOR
+            })
+            .then((response) => {
+                const streetViewPanoramaData = response.data;
+                this._panorama.setPosition(latLonGoogle);
+                this._panorama.setVisible(true);
+                this._panorama.setZoom(1);
+                if (this._options.updatePegmanToClosestPanorama) {
+                    this._remvoveTranslateInteractionEvent();
+                    this._updatePegmanPosition(
+                        streetViewPanoramaData.location.latLng,
+                        true
+                    );
+                    this._addTranslateInteractionEvent();
                 }
-            }
-        );
+            })
+            .catch(() => {
+                this._showNoDataMode();
+                this._updatePegmanPosition(coords, false);
+            });
     }
 
     private _updatePegmanPosition(
